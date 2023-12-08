@@ -4,7 +4,7 @@
     "target": "es2020",                         // Set the JavaScript version for emitted JavaScript and included lib.d.ts
     "module": "commonjs",                       // CommonJS modules are used in Node.js
     "lib": ["es2020"],                          // Include typings for newer ECMAScript features
-    "outDir": "./dist",                         // Redirect output structure to the 'dist' directory
+    "outDir": "./build",                         // Redirect output structure to the 'dist' directory
     "rootDir": "./src",                         // Root directory of your source files
     "strict": true,                             // Enable all strict type-checking options
 
@@ -26,7 +26,8 @@
   },
   "include": [
     "src/**/*",
-    "config/**/*"
+    "config/**/*",
+    "./commitlint.config.js"
   ],
   "exclude": ["node_modules", "**/*.spec.ts"]   // Exclude the 'node_modules' folder and test files
 }

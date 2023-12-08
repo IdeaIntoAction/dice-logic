@@ -13,3 +13,5 @@ export type Response = {
   isWin: boolean;
   amount: number;
 };
+
+export type MessageHandlerCallback = (msgContent: string) => Promise<Response>;

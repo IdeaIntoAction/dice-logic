@@ -9,7 +9,7 @@ import { config } from '../config';
 import { RabbitService } from '../service/rabbit/rabbit';
 import { logger } from '../util/logger';
 
-const port = config.server.port;
+const { port } = config.server;
 
 app.set('port', port);
 
@@ -29,14 +29,16 @@ function onError(error: any) {
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-  case 'EACCES':
-    process.exit(1);
-    break;
-  case 'EADDRINUSE':
-    process.exit(1);
-    break;
-  default:
-    throw error;
+    case 'EACCES':
+      logger.error('requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      logger.error('port is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
   }
 }
 
@@ -49,12 +51,32 @@ async function onListening() {
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr?.port}`;
   logger.info('listening on', bind);
 
-  const rabbit = await RabbitService.getInstance(
-    'postgres_exchange',
-    'rpc_exchange',
-  );
+  try {
+    const rabbit = await RabbitService.getInstance(
+      'postgres_exchange',
+      'rpc_exchange',
+    );
 
-  rabbit.run();
+    rabbit.setCustomMessageHandler(async (message: string) => {
+      logger.info(message, 'message');
+
+      const diceRoll = {
+        id: '1',
+        userId: '2',
+        nickname: 'test',
+      };
+
+      rabbit.publishMessage(diceRoll, 5, 'rpc_exchange');
+      return {
+        isWin: true,
+        amount: 10,
+      };
+    });
+
+    rabbit.run();
+  } catch (error) {
+    logger.error(error);
+  }
 }
 
 /**
@@ -66,13 +88,12 @@ server.on('listening', onListening);
 
 process.on('SIGINT', () => {
   server.close(async () => {
-
-
     process.exit(0);
   });
 });
 
 process.on('unhandledRejection', (reason: Error) => {
+  logger.error(reason);
   throw reason;
 });
 

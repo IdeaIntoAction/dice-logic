@@ -4,15 +4,20 @@ import { logger } from '../../util/logger';
 
 export class RabbitConnect {
   private _connection!: Connection;
+
   private _channel!: Channel;
+
   private readonly _url: string;
+
   public readonly exchange: string;
+
   public readonly queue: string;
+
   public pushQueue?: string;
 
   constructor(
     nameExchange = 'rpc_exchange',
-    url = 'amqp://user:password@localhost:5672'
+    url = 'amqp://user:password@localhost:5672',
   ) {
     this._url = url;
     this.exchange = nameExchange;

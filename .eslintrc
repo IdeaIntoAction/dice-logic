@@ -1,0 +1,128 @@
+{
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true,
+    "commonjs": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base",
+    "airbnb-typescript/base",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:promise/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint", "promise", "import"],
+  "noInlineConfig": false,
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts"]
+      }
+    }
+  },
+  "overrides": [
+    {
+      "files": ["tests/*"]
+    }
+  ],
+  "rules": {
+    "indent": "off",
+    "@typescript-eslint/indent": ["error", 2],
+    "import/prefer-default-export": 0,
+    "no-restricted-syntax": ["error", "WithStatement", "BinaryExpression[operator='in']"],
+    "semi": ["error", "always"],
+    "@typescript-eslint/camelcase": 0,
+    "no-debugger": "off",
+    "no-console": "warn",
+    "@typescript-eslint/no-explicit-any": 0,
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.ts", "**/*.spec.ts", "tests/*"]}],
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "mjs": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "no-underscore-dangle": "off",
+    "lines-between-class-members": [
+      "error",
+      "always",
+      {
+        "exceptAfterSingleLine": true
+      }
+    ],
+    "max-len": [
+      1,
+      {
+        "code": 120
+      }
+    ],
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-useless-constructor": ["warn"],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-empty-function": [
+      "error",
+      {
+        "allow": ["constructors"]
+      }
+    ],
+    "no-empty-function": [
+      "error",
+      {
+        "allow": ["constructors"]
+      }
+    ],
+    "camelcase": "off",
+    "class-methods-use-this": "off",
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "interface",
+        "format": ["PascalCase"],
+        "custom": {
+          "regex": "^I[A-Z]",
+          "match": true
+        }
+      }
+    ],
+    "@typescript-eslint/interface-name-prefix": 0,
+    "max-classes-per-file": ["error", 4],
+    "@typescript-eslint/typedef": [
+      "error",
+      {
+        "arrowParameter": false,
+        "memberVariableDeclaration": true,
+        "objectDestructuring": false,
+        "parameter": false,
+        "propertyDeclaration": true,
+        "variableDeclaration": false,
+        "variableDeclarationIgnoreFunction": true
+      }
+    ],
+    "consistent-return": "off",
+    "promise/always-return": "off",
+    "import/no-cycle": ["error", {"maxDepth": 1}],
+    "no-shadow": "warn",
+    "no-return-assign": "off"
+  }
+}

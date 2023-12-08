@@ -1,19 +1,24 @@
 import { Message } from 'amqplib';
-import { ConnectRabbitType, Request } from './interface';
+import { ConnectRabbitType, MessageHandlerCallback, Request } from './interface';
 import { RabbitConnect } from './connect';
 import { RabbitRPCRequest } from './rpc-request';
 import { logger } from '../../util/logger';
 
 export class RabbitService {
   private rpcConnection: RabbitConnect;
+
   private consumeConnection: RabbitConnect;
+
   public requestSequence: Map<string, { complete: (msg: string) => void }>;
+
   private static instance: RabbitService;
 
-  private constructor(rpcExchange: string, consumeExchange: string ) {
-    this.rpcConnection = new RabbitConnect( rpcExchange);
+  private customMessageHandler?: MessageHandlerCallback;
+
+  private constructor(rpcExchange: string, consumeExchange: string) {
+    this.rpcConnection = new RabbitConnect(rpcExchange);
     this.consumeConnection = new RabbitConnect(consumeExchange);
-    this.requestSequence = new Map<string, { complete: (msg: string) => void }>();
+    this.requestSequence = new Map<string, { complete:(msg: string) => void }>();
   }
 
   public static async getInstance(
@@ -26,6 +31,10 @@ export class RabbitService {
       await RabbitService.instance.consumeConnection.connect(ConnectRabbitType.CONSUME);
     }
     return RabbitService.instance;
+  }
+
+  public setCustomMessageHandler(handler: MessageHandlerCallback) {
+    this.customMessageHandler = handler;
   }
 
   public run = () => {
@@ -42,7 +51,7 @@ export class RabbitService {
   private messageHandler = (message: Message | null) => {
     if (!message) return;
 
-    const correlationId = message.properties.correlationId;
+    const { correlationId } = message.properties;
     const currentHandler = this.requestSequence.get(correlationId);
     if (currentHandler) {
       currentHandler.complete(message.content.toString());
@@ -67,11 +76,15 @@ export class RabbitService {
 
     this.consumeConnection.ack(msg);
     const messageContent = msg.content.toString();
-    const handlerResult = await this.handlerMessageFromRPC(messageContent);
+    if (this.customMessageHandler) {
+      const handlerResult = await this.customMessageHandler(messageContent);
 
-    this.consumeConnection.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(handlerResult)), {
-      correlationId: msg.properties.correlationId,
-    });
+      this.consumeConnection.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(handlerResult)), {
+        correlationId: msg.properties.correlationId,
+      });
+    } else {
+      logger.warn('No custom message handler set for RabbitService');
+    }
   };
 
   private timeoutHandler(request: RabbitRPCRequest, reject: (reason: any) => void) {
@@ -96,7 +109,7 @@ export class RabbitService {
     });
   };
 
-  public publishMessage = (request: Request, priority = 5, exchange: string): void => {
+  public publishMessage = (request: Request, priority: number, exchange: string): void => {
     try {
       const { channel, exchange: connectExchange } = this.rpcConnection;
       if (exchange !== connectExchange) {
@@ -112,9 +125,5 @@ export class RabbitService {
     } catch (error) {
       logger.error('Error publishing message to exchange', error);
     }
-  };
-
-  public handlerMessageFromRPC = async (_msg: string): Promise<any> => {
-    throw new Error('Implement handlerMessageFromRPC logic');
   };
 }

@@ -3,7 +3,7 @@ import pino from 'pino';
 const config = {
   logLevel: 'info',
   isTest: false,
-}
+};
 
 export const logger = pino({
   level: config.logLevel,

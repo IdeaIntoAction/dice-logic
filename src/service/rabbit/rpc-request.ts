@@ -6,10 +6,12 @@ import { logger } from '../../util/logger';
 
 export class RabbitRPCRequest extends EventEmitter {
   private _id: string;
+
   public request: Request | null;
+
   private priority: number;
 
-  constructor(request: Request, priority = 5,) {
+  constructor(request: Request, priority: number = 5) {
     super();
     this._id = randomUUID();
     this.request = request;
@@ -36,6 +38,7 @@ export class RabbitRPCRequest extends EventEmitter {
     this.request = null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/typedef
   private _errorHandler = (error: Error): void => {
     const errorMessage = `[RPC Request Error] Error occurred in emitter: ${error.message}`;
     logger.error(errorMessage);
@@ -54,7 +57,7 @@ export class RabbitRPCRequest extends EventEmitter {
       connection.exchange,
       '',
       Buffer.from(JSON.stringify(this.request)),
-      publishDetails
+      publishDetails,
     );
 
     const logPublish = `[RPC Publish] Published request to RPC queue '${connection.pushQueue}' with details: ${JSON.stringify(publishDetails)}`;
