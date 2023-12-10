@@ -3,7 +3,7 @@ export enum ConnectRabbitType {
   CONSUME = 'consume',
 }
 
-export type Request = {
+export type IRequest = {
   id: string;
   userId: string;
   nickname: string;
@@ -11,7 +11,7 @@ export type Request = {
 
 export type Response = {
   isWin: boolean;
-  amount: number;
+  number: number;
 };
 
 export type MessageHandlerCallback = (msgContent: string) => Promise<Response>;

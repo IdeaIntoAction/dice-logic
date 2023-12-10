@@ -1,17 +1,17 @@
 import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
-import { Request } from './interface';
+import { IRequest } from './interface';
 import { RabbitConnect } from './connect';
 import { logger } from '../../util/logger';
 
 export class RabbitRPCRequest extends EventEmitter {
   private _id: string;
 
-  public request: Request | null;
+  public request: IRequest | null;
 
   private priority: number;
 
-  constructor(request: Request, priority: number = 5) {
+  constructor(request: IRequest, priority: number = 5) {
     super();
     this._id = randomUUID();
     this.request = request;
@@ -23,20 +23,20 @@ export class RabbitRPCRequest extends EventEmitter {
     return this._id;
   }
 
-  public complete(message: string): string {
+  public complete = (message: string): string => {
     const logMessage = `[RPC Request Complete] Received message: ${message}`;
     logger.info(logMessage);
     this.emit('complete', message);
     this.destroy();
     return message;
-  }
+  };
 
-  public destroy(): void {
+  public destroy = (): void => {
     logger.debug(`[RPC Request Destroy] Destroying request with ID: ${this._id}`);
     this.removeAllListeners();
     this._id = '';
     this.request = null;
-  }
+  };
 
   // eslint-disable-next-line @typescript-eslint/typedef
   private _errorHandler = (error: Error): void => {

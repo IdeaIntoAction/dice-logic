@@ -8,6 +8,8 @@ import app from '../app/app';
 import { config } from '../config';
 import { RabbitService } from '../service/rabbit/rabbit';
 import { logger } from '../util/logger';
+import GameService from '../service/game';
+import { IRequest } from '../service/rabbit/interface';
 
 const { port } = config.server;
 
@@ -57,20 +59,35 @@ async function onListening() {
       'rpc_exchange',
     );
 
+    const { host, port: redisPort, db } = config.redis;
+    const redisUrl = `redis://${host}:${redisPort}/${db}`;
+    const gameService = new GameService(redisUrl);
+    await gameService.checkConnection().then(() => {
+      logger.info('Redis connection established');
+    });
+
     rabbit.setCustomMessageHandler(async (message: string) => {
-      logger.info(message, 'message');
+      logger.info(message, 'Received message');
+      const content = JSON.parse(message) as IRequest;
+
+      const result = Math.floor(Math.random() * 6) + 1; // game simulation
+      await gameService.recordGameResult(content.userId, result);
 
       const diceRoll = {
-        id: '1',
-        userId: '2',
-        nickname: 'test',
+        ...content,
+        number: result,
+        status: false,
       };
 
-      rabbit.publishMessage(diceRoll, 5, 'rpc_exchange');
-      return {
-        isWin: true,
-        amount: 10,
-      };
+      if (await gameService.checkForWin(content.userId)) {
+        diceRoll.status = true;
+        await rabbit.getRequestResult(diceRoll, 10);
+        return { isWin: true, ...diceRoll };
+      }
+
+      rabbit.publishMessage(diceRoll, 5, 'postgres_exchange');
+
+      return { isWin: false, number: result };
     });
 
     rabbit.run();

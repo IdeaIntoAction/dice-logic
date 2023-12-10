@@ -1,5 +1,5 @@
 import { Message } from 'amqplib';
-import { ConnectRabbitType, MessageHandlerCallback, Request } from './interface';
+import { ConnectRabbitType, MessageHandlerCallback, IRequest } from './interface';
 import { RabbitConnect } from './connect';
 import { RabbitRPCRequest } from './rpc-request';
 import { logger } from '../../util/logger';
@@ -90,12 +90,12 @@ export class RabbitService {
   private timeoutHandler(request: RabbitRPCRequest, reject: (reason: any) => void) {
     return setTimeout(() => {
       request.destroy();
-      reject(new Error('Timeout Error'));
+      reject('Timeout');
     }, 6000);
   }
 
   public getRequestResult = async (
-    request: Request,
+    request: IRequest,
     priority = 10,
   ): Promise<string | null> => {
     const newRequest = new RabbitRPCRequest(request, priority);
@@ -109,7 +109,7 @@ export class RabbitService {
     });
   };
 
-  public publishMessage = (request: Request, priority: number, exchange: string): void => {
+  public publishMessage = (request: IRequest, priority: number, exchange: string): void => {
     try {
       const { channel, exchange: connectExchange } = this.rpcConnection;
       if (exchange !== connectExchange) {
